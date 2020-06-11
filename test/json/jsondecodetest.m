@@ -1,5 +1,8 @@
 % test jsondecode
 
+% Note: This script is intended to be a script-based unit test
+%       for MATLAB to test compatibility.  Don't break that!
+
 %% Test 1: decode null values
 
 % null, in nonnumeric arrays to Empty double []
@@ -386,4 +389,4 @@ tmp3 = struct ('firstName', 'John','lastName', 'Smith', 'age', 25, 'address', ..
 exp = {{'str'; Inf; []}; [1; 2; NaN]; {'foo'; 'bar'; {'foo'; 'bar'}};
        cat(3, [1, 3; 5, 7], [2, 4; 6, 8]); {tmp1; tmp2 ;tmp3}};
 act  = jsondecode (json);
-assert (isequaln (exp, act)); 
+assert (isequaln (exp, act));
