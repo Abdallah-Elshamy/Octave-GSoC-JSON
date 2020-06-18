@@ -102,8 +102,8 @@ act  = jsondecode (json);
 assert (isequal (exp, act));
 
 % check the decoding of null values and arrays inside an object & makeValidName
-json = '{"numeric array": ["str", 5, null], "nonnumeric array": [1, 2, null]}';
-exp  = struct ('numericArray',{{'str'; 5; []}}, 'nonnumericArray', {[1; 2; NaN]});
+json = '{"nonnumeric array": ["str", 5, null], "numeric array": [1, 2, null]}';
+exp  = struct ('nonnumericArray',{{'str'; 5; []}}, 'numericArray', {[1; 2; NaN]});
 act  = jsondecode (json);
 assert (isequaln (exp, act));
 
