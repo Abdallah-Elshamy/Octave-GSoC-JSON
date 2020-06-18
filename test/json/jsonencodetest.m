@@ -18,3 +18,14 @@ assert (isequal (jsonencode (-Inf, 'ConvertInfAndNaN', true), 'null'));
 assert (isequal (jsonencode (NaN, 'ConvertInfAndNaN', false), 'NaN'));
 assert (isequal (jsonencode (Inf, 'ConvertInfAndNaN', false), 'Infinity'));
 assert (isequal (jsonencode (-Inf, 'ConvertInfAndNaN', false), '-Infinity'));
+
+%% Test 2: encode character vectors and arrays
+assert (isequal (jsonencode (''), '""'));
+assert (isequal (jsonencode ('hello there'), '"hello there"'));
+assert (isequal (jsonencode (['foo'; 'bar']), '["foo","bar"]'));
+assert (isequal (jsonencode (['foo', 'bar'; 'foo', 'bar']), '["foobar","foobar"]'));
+
+data = [[['foo'; 'bar']; ['foo'; 'bar']], [['foo'; 'bar']; ['foo'; 'bar']]];
+exp  = '["foofoo","barbar","foofoo","barbar"]';
+act  = jsonencode (data);
+assert (isequal (exp, act));
