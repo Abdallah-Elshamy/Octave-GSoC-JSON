@@ -57,3 +57,18 @@ data = [true false; true false; true false];
 exp  = '[[true,false],[true,false],[true,false]]';
 act  = jsonencode (data);
 assert (isequal (exp, act));
+
+%% Test 4: encode containers.Map
+
+% KeyType must be char to encode objects of containers.Map
+assert (isequal (jsonencode (containers.Map('1', [1, 2, 3])), '{"1":[1,2,3]}'));
+
+data = containers.Map({'foo'; 'bar'; 'baz'}, [1, 2, 3]);
+exp  = '{"bar":2,"baz":3,"foo":1}';
+act  = jsonencode (data);
+assert (isequal (exp, act));
+
+data = containers.Map({'foo'; 'bar'; 'baz'}, {{1, 'hello', NaN}, true, [2, 3, 4]});
+exp  = '{"bar":true,"baz":[2,3,4],"foo":[1,"hello",NaN]}';
+act  = jsonencode (data, 'ConvertInfAndNaN', false);
+assert (isequal (exp, act));
