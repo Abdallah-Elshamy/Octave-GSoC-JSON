@@ -33,7 +33,7 @@ assert (isequal (exp, act));
 %% Test 3: encode numeric and logical arrays (with NaN and Inf)
 % test simple vectors
 assert (isequal (jsonencode ([]), '[]'));
-assert (isequal (jsonencode ([1, 2, 3, 4]]), '[1,2,3,4]'));
+assert (isequal (jsonencode ([1, 2, 3, 4]), '[1,2,3,4]'));
 assert (isequal (jsonencode ([true; false; true]), '[true,false,true]'));
 
 % test arrays
