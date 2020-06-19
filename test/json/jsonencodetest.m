@@ -49,7 +49,7 @@ assert (isequal (exp, act));
 
 % Customized encoding of Nan, Inf, -Inf
 data = cat (3, [1, NaN; 5, 7], [2, Inf; 6, -Inf]);
-exp  = '[[[1,Nan],[3,Infinity]],[[5,6],[7,-Infinity]]]';
+exp  = '[[[1,2],[NaN,Infinity]],[[5,6],[7,-Infinity]]]';
 act  = jsonencode (data, 'ConvertInfAndNaN', false);
 assert (isequal (exp, act));
 
