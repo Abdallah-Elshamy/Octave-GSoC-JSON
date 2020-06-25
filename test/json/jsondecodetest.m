@@ -12,6 +12,7 @@ act  = jsondecode (json);
 assert (isequal (exp, act));
 
 % null, in numeric arrays to NaN
+% extracted from JSONio
 json = '[1, 2, null, 3]';
 exp  = [1; 2; NaN; 3];
 act  = jsondecode (json);
@@ -56,17 +57,20 @@ exp  = [15000; 5; 12.25; 1502302.3012];
 act  = jsondecode (json);
 assert (isequal (exp, act));
 
+% extracted from JSONio
 json = '[[1,2]]';
 exp  = [1 2];
 act  = jsondecode (json);
 assert (isequal (exp, act));
 
 % If they have the same dimensions -> transform to an array
+% extracted from JSONio
 json = '[[1, 2], [3, 4]]';
 exp  = [1 2; 3 4];
 act  = jsondecode (json);
 assert (isequal (exp, act));
 
+% extracted from JSONio
 json = '[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]';
 exp  = cat (3, [1, 3; 5, 7], [2, 4; 6, 8]);
 act  = jsondecode (json);
@@ -78,11 +82,12 @@ act  = jsondecode (json);
 assert (isequal (exp, act));
 
 % If they have different dimensions -> transform to a cell array
+% extracted from JSONio
 json = '[[1, 2], [3, 4, 5]]';
 exp  = {[1; 2]; [3; 4; 5]};
 act  = jsondecode (json);
 assert (isequal (exp, act));
-
+% extracted from JSONio
 json = '[1, 2, [3, 4]]';
 exp  = {1; 2; [3; 4]};
 act  = jsondecode (json);
@@ -108,6 +113,7 @@ act  = jsondecode (json);
 assert (isequaln (exp, act));
 
 %  check the decoding of objects inside an object & makeValidName
+% extracted from JSONio
 json = '{"object": {"  field 1   ": 1, "field-   2": 2, "3field": 3, "": 1}}';
 exp  = struct ('object', struct ('field1', 1, 'field_2', 2, 'x3field', 3, 'x', 1));
 act  = jsondecode (json);
@@ -120,12 +126,14 @@ act  = jsondecode (json);
 assert (isequal (exp, act));
 
 % check the decoding of string arrays inside an object & makeValidName
+% extracted from JSONio
 json = '{"%string.array": ["Statistical","Parametric","Mapping"]}';
 exp  = struct ('x_string_array', {{'Statistical'; 'Parametric'; 'Mapping'}});
 act  = jsondecode (json);
 assert (isequal (exp, act));
 
 % a big test
+% extracted from jsonlab
 json = ['{' , ...
     '"glossary": { ', ...
         '"title": "example glossary",', ...
@@ -162,12 +170,14 @@ assert (isequal (exp, act));
 %% Test 5: decode Array of JSON objects
 
 % arrays with the same field names in the same order
+% extracted from JSONio
 json = '{"structarray": [{"a":1,"b":2},{"a":3,"b":4}]}';
 exp  = struct ('structarray', struct ('a', {1; 3}, 'b', {2; 4}));
 act  = jsondecode (json);
 assert (isequal (exp, act));
 
 % arrays with the same field names in the same order and a big test
+% json text is generated from json-generator.com
 json = ['[', ...
   '{', ...
     '"_id": "5ee28980fc9ab3",', ...
@@ -244,12 +254,14 @@ act  = jsondecode (json);
 assert (isequal (exp, act));
 
 % arrays with the same field names in different order
+% extracted from JSONio
 json = '{"cellarray": [{"a":1,"b":2},{"b":3,"a":4}]}';
 exp  = struct ('cellarray', {{struct('a', 1, 'b', 2); struct('b', 3, 'a', 4)}});
 act  = jsondecode (json);
 assert (isequal (exp, act));
 
 % arrays with different field names
+% extracted from JSONio
 json = '{"cellarray": [{"a":1,"b":2},{"a":3,"c":4}]}';
 exp  = struct ('cellarray', {{struct('a', 1, 'b', 2); struct('a', 3, 'c', 4)}});
 act  = jsondecode (json);

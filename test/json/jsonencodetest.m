@@ -3,6 +3,7 @@
 % Note: This script is intended to be a script-based unit test
 %       for MATLAB to test compatibility.  Don't break that!
 
+% some tests here are just the reverse of tests in jsondecode with some modifiactions
 %% Test 1: encode logical and numeric scalars, NaN and Inf
 assert (isequal (jsonencode (true), 'true'));
 assert (isequal (jsonencode (50.025), '50.025'));
