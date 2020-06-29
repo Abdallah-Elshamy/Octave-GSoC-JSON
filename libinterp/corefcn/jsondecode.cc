@@ -27,6 +27,32 @@
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
 
+octave_value
+decode_number (const rapidjson::Value& val)
+{
+  if (val.IsUint ())
+    return octave_value (val.GetUint ());
+  else if (val.IsInt ())
+    return octave_value (val.GetInt ());
+  else if (val.IsUint64 ())
+    return octave_value (val.GetUint64 ());
+  else if (val.IsInt64 ())
+    return octave_value (val.GetInt64 ());
+  else if (val.IsDouble ())
+    return octave_value (val.GetDouble ());
+}
+
+octave_value
+decode (const rapidjson::Value& val)
+{
+  if (val.IsBool ())
+    return octave_value (val.GetBool ());
+  else if (val.IsNumber ())
+    return decode_number (val);
+  else if (val.IsString ())
+    return octave_value (val.GetString ());
+}
+
 DEFUN_DLD (jsondecode, args,, "Decode JSON") // FIXME: Add proper documentation
 {
   int nargin = args.length ();
@@ -46,4 +72,5 @@ DEFUN_DLD (jsondecode, args,, "Decode JSON") // FIXME: Add proper documentation
     error("jsondecode: Parse error at offset %u: %s\n",
           (unsigned)d.GetErrorOffset (),
           rapidjson::GetParseError_En (d.GetParseError ()));
+  return decode (d);
 }
