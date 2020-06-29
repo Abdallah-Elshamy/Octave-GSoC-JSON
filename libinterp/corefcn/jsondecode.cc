@@ -24,8 +24,12 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include <octave/oct.h>
+#include <octave/parse.h>
 #include "rapidjson/document.h"
 #include "rapidjson/error/en.h"
+
+octave_value
+decode (const rapidjson::Value& val);
 
 octave_value
 decode_number (const rapidjson::Value& val)
@@ -43,6 +47,20 @@ decode_number (const rapidjson::Value& val)
 }
 
 octave_value
+decode_object (const rapidjson::Value& val)
+{
+  octave_scalar_map retval;
+  for (auto& pair : val.GetObject ())
+    {
+      std::string fcn_name = "matlab.lang.makeValidName";
+      octave_value_list args = octave_value_list (pair.name.GetString ());
+      std::string validName = octave::feval (fcn_name,args)(0).string_value ();
+      retval.assign(validName, decode(pair.value));
+    }
+  return octave_value (retval);
+}
+
+octave_value
 decode (const rapidjson::Value& val)
 {
   if (val.IsBool ())
@@ -51,6 +69,8 @@ decode (const rapidjson::Value& val)
     return decode_number (val);
   else if (val.IsString ())
     return octave_value (val.GetString ());
+  else if (val.IsObject ())
+    return decode_object (val);
 }
 
 DEFUN_DLD (jsondecode, args,, "Decode JSON") // FIXME: Add proper documentation
