@@ -31,6 +31,19 @@
 octave_value
 decode (const rapidjson::Value& val);
 
+bool
+equals (const string_vector& a, const string_vector& b)
+{
+  if (a.numel () != b.numel ())
+    return false;
+  octave_idx_type n = a.numel ();
+  for (octave_idx_type i = 0; i < n; ++i)
+    if (a(i) != b(i))
+      return false;
+
+  return true;
+}
+
 octave_value
 decode_number (const rapidjson::Value& val)
 {
@@ -97,6 +110,31 @@ decode_string_and_mixed_array (const rapidjson::Value& val)
 }
 
 octave_value
+decode_object_array (const rapidjson::Value& val)
+{
+  Cell struct_cell = decode_string_and_mixed_array (val).cell_value ();
+  string_vector field_names = struct_cell(0).scalar_map_value ().fieldnames ();
+  bool same_field_names = 1;
+  for (octave_idx_type i = 1; i < struct_cell.numel (); ++i)
+      if (! equals (field_names, struct_cell(i).scalar_map_value ().fieldnames ()))
+        same_field_names = 0;
+  if (same_field_names)
+  {
+    octave_map struct_array;
+    Cell value (dim_vector (struct_cell.numel (), 1));
+    for (octave_idx_type i = 0; i < field_names.numel (); ++i)
+      {
+        for (octave_idx_type k = 0; k < struct_cell.numel (); ++k)
+          value(k) = struct_cell(k).scalar_map_value ().getfield (field_names(i));
+        struct_array.assign (field_names(i), value);
+      }
+    return octave_value (struct_array);
+  }
+  else
+    return struct_cell;
+}
+
+octave_value
 decode_array (const rapidjson::Value& val)
 {
   // Handle empty arrays
@@ -130,6 +168,8 @@ decode_array (const rapidjson::Value& val)
         return decode_boolean_array (val);
       else if (array_type == rapidjson::kStringType)
         return decode_string_and_mixed_array (val);
+      else if (array_type == rapidjson::kObjectType)
+        return decode_object_array (val);
       else
         return octave_value (true); // TODO : support  more types
     }
