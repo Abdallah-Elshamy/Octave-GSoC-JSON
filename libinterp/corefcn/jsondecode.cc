@@ -61,6 +61,83 @@ decode_object (const rapidjson::Value& val)
 }
 
 octave_value
+decode_numeric_array (const rapidjson::Value& val)
+{
+  NDArray retval (dim_vector (val.Size (), 1));
+  octave_idx_type index = 0;
+  for (auto& elem : val.GetArray ())
+    {
+      if(elem.IsNull ())
+        retval(index) = octave::feval ("NaN")(0).double_value ();
+      else
+        retval(index) = decode_number (elem).double_value ();
+      index++;
+    }
+  return retval;
+}
+
+octave_value
+decode_boolean_array (const rapidjson::Value& val)
+{
+  boolNDArray retval (dim_vector (val.Size (), 1));
+  octave_idx_type index = 0;
+  for (auto& elem : val.GetArray ())
+    retval(index++) = elem.GetBool ();
+  return retval;
+}
+
+octave_value
+decode_string_and_mixed_array (const rapidjson::Value& val)
+{
+  Cell retval (dim_vector (val.Size (), 1));
+  octave_idx_type index = 0;
+  for (auto& elem : val.GetArray ())
+    retval(index++) = decode (elem);
+  return retval;
+}
+
+octave_value
+decode_array (const rapidjson::Value& val)
+{
+  // Handle empty arrays
+  if (val.Empty ())
+    return NDArray (dim_vector (0,0));
+
+  // Compare with other elements to know if the array has multible types
+  rapidjson::Type array_type = val[0].GetType ();
+  // Check if the array is numeric and if it has multible types
+  bool same_type = 1, is_numeric = 1;
+  for (auto& elem : val.GetArray ())
+    {
+      rapidjson::Type current_elem_type = elem.GetType ();
+      if (! (current_elem_type == rapidjson::kNullType
+          || current_elem_type == rapidjson::kNumberType))
+        is_numeric = 0;
+      if (current_elem_type != array_type)
+        // RapidJSON doesn't have kBoolean Type it has kTrueType and kFalseType
+        if (! ((current_elem_type == rapidjson::kTrueType
+                && array_type == rapidjson::kFalseType)
+            || (current_elem_type == rapidjson::kFalseType
+                && array_type == rapidjson::kTrueType)))
+          same_type = 0;
+    }
+  if (is_numeric)
+    return decode_numeric_array (val);
+  if (same_type)
+    {
+      if (array_type == rapidjson::kTrueType
+          || array_type == rapidjson::kFalseType)
+        return decode_boolean_array (val);
+      else if (array_type == rapidjson::kStringType)
+        return decode_string_and_mixed_array (val);
+      else
+        return octave_value (true); // TODO : support  more types
+    }
+  else
+    return decode_string_and_mixed_array (val);
+}
+
+octave_value
 decode (const rapidjson::Value& val)
 {
   if (val.IsBool ())
@@ -71,6 +148,10 @@ decode (const rapidjson::Value& val)
     return octave_value (val.GetString ());
   else if (val.IsObject ())
     return decode_object (val);
+  else if (val.IsNull ())
+    return NDArray (dim_vector (0,0));
+  else if (val.IsArray ())
+    return decode_array (val);
 }
 
 DEFUN_DLD (jsondecode, args,, "Decode JSON") // FIXME: Add proper documentation
