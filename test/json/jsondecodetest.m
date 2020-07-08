@@ -83,6 +83,32 @@
 %! act  = jsondecode (json);
 %! assert (isequal (exp, act));
 
+% try different dimensions for the array
+%!test
+%! json = '[[[1, 2, -1], [3, 4, null]], [[5, 6, Inf], [7, 8, -Inf]]]';
+%! exp  = cat (3, [1, 3; 5, 7], [2, 4; 6, 8], [-1, NaN; Inf, -Inf]);
+%! act  = jsondecode (json);
+%! assert (isequaln (exp, act));
+
+% try different dimensions for the array
+%!test
+%! json = '[[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]]';
+%! exp  = cat (3, [1, 3; 5, 7; 9, 11], [2, 4; 6, 8; 10, 12]);
+%! act  = jsondecode (json);
+%! assert (isequaln (exp, act));
+
+% try higher dimensions for the array
+%!test
+%! json = ['[[[[1,-1], [2,-2]],[[3,-3],[4,-4]]],[[[5,-5],[6,-6]],[[7,-7],', ...
+%!         '[8,-8]]],[[[9,-9], [10,-10]],[[11,-11],[12,-12]]],', ...
+%!         '[[[13,-13],[14,-14]],[[15,-15],[16,-16]]]]'];
+%! tmp1 = cat (3, [1, 3; 5, 7; 9, 11; 13, 15], [2, 4; 6, 8; 10, 12; 14, 16]);
+%! tmp2 = cat (3, [-1, -3; -5, -7; -9, -11; -13, -15], ...
+%!             [-2, -4; -6, -8; -10, -12; -14, -16]);
+%! exp  = cat (4, tmp1, tmp2);
+%! act  = jsondecode (json);
+%! assert (isequal (exp, act));
+
 %!test
 %! json = '[[true, false], [true, false], [true, false]]';
 %! exp  = [1 0; 1 0; 1 0];
