@@ -134,6 +134,46 @@ decode_object_array (const rapidjson::Value& val)
     return struct_cell;
 }
 
+
+octave_value
+decode_array_of_arrays (const rapidjson::Value& val)
+{
+  // Some arrays should be decoded as NDArrays and others as cell arrays
+  Cell cell = decode_string_and_mixed_array(val).cell_value ();
+  // Only arrays with sub arrays of booleans and numericals will return NDArray
+  bool is_bool = cell(0).is_bool_matrix ();
+  dim_vector sub_array_dims = cell(0).dims ();
+  octave_idx_type sub_array_ndims = cell(0).ndims ();
+  octave_idx_type cell_numel = cell.numel ();
+  for (octave_idx_type i = 0; i < cell_numel; ++i)
+    {
+      // If one element is cell return the cell array as at least one of
+      // the sub arrays area either an array of: strings , objects or mixed array.
+      if (cell(i).iscell ())
+        return cell;
+      // If not the same dim of elements or dim = 0 return cell array
+      if (cell(i).dims () != sub_array_dims || sub_array_dims == dim_vector ())
+        return cell;
+      // If not numeric sub arrays only or bool sub arrays only return cell array
+      if(cell(i).is_bool_matrix () != is_bool)
+        return cell;
+    }
+  // Calculate the dims of the output array
+  dim_vector array_dims;
+	array_dims.resize (sub_array_ndims + 1);
+	array_dims(0) = cell_numel;
+	for (int i = 1; i < sub_array_ndims + 1; i++)
+  		array_dims(i) = sub_array_dims(i-1);
+  NDArray array (array_dims);
+
+  // Populate the array with specific order to generate MATLAB-identical output
+  octave_idx_type array_index = 0;
+  for (octave_idx_type i = 0; i < array.numel () / cell_numel; ++i)
+    for (octave_idx_type k = 0; k < cell_numel; ++k)
+        array(array_index++) = cell(k).array_value()(i);
+  return array;
+}
+
 octave_value
 decode_array (const rapidjson::Value& val)
 {
@@ -170,8 +210,8 @@ decode_array (const rapidjson::Value& val)
         return decode_string_and_mixed_array (val);
       else if (array_type == rapidjson::kObjectType)
         return decode_object_array (val);
-      else
-        return octave_value (true); // TODO : support  more types
+      else if (array_type == rapidjson::kArrayType)
+        return decode_array_of_arrays (val);
     }
   else
     return decode_string_and_mixed_array (val);
