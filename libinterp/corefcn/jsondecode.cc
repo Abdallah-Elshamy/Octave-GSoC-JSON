@@ -57,6 +57,8 @@ decode_number (const rapidjson::Value& val)
     return octave_value (val.GetInt64 ());
   else if (val.IsDouble ())
     return octave_value (val.GetDouble ());
+  else
+    error ("jsondecode.cc: Unidentified type.");
 }
 
 octave_value
@@ -212,6 +214,8 @@ decode_array (const rapidjson::Value& val)
         return decode_object_array (val);
       else if (array_type == rapidjson::kArrayType)
         return decode_array_of_arrays (val);
+      else
+        error ("jsondecode.cc: Unidentified type.");
     }
   else
     return decode_string_and_mixed_array (val);
@@ -232,6 +236,8 @@ decode (const rapidjson::Value& val)
     return NDArray (dim_vector (0,0));
   else if (val.IsArray ())
     return decode_array (val);
+  else
+    error ("jsondecode.cc: Unidentified type.");
 }
 
 DEFUN_DLD (jsondecode, args,, "Decode JSON") // FIXME: Add proper documentation
