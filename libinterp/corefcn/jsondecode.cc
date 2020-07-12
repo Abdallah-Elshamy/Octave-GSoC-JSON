@@ -29,7 +29,7 @@
 #include "rapidjson/error/en.h"
 
 octave_value
-decode (const rapidjson::Value& val);
+decode (const rapidjson::Value& val, const octave_value_list& options);
 
 bool
 equals (const string_vector& a, const string_vector& b)
@@ -62,15 +62,16 @@ decode_number (const rapidjson::Value& val)
 }
 
 octave_value
-decode_object (const rapidjson::Value& val)
+decode_object (const rapidjson::Value& val, const octave_value_list& options)
 {
   octave_scalar_map retval;
   for (auto& pair : val.GetObject ())
     {
       std::string fcn_name = "matlab.lang.makeValidName";
       octave_value_list args = octave_value_list (pair.name.GetString ());
+      args.append (options);
       std::string validName = octave::feval (fcn_name,args)(0).string_value ();
-      retval.assign(validName, decode(pair.value));
+      retval.assign(validName, decode(pair.value, options));
     }
   return octave_value (retval);
 }
@@ -102,19 +103,19 @@ decode_boolean_array (const rapidjson::Value& val)
 }
 
 octave_value
-decode_string_and_mixed_array (const rapidjson::Value& val)
+decode_string_and_mixed_array (const rapidjson::Value& val, const octave_value_list& options)
 {
   Cell retval (dim_vector (val.Size (), 1));
   octave_idx_type index = 0;
   for (auto& elem : val.GetArray ())
-    retval(index++) = decode (elem);
+    retval(index++) = decode (elem, options);
   return retval;
 }
 
 octave_value
-decode_object_array (const rapidjson::Value& val)
+decode_object_array (const rapidjson::Value& val, const octave_value_list& options)
 {
-  Cell struct_cell = decode_string_and_mixed_array (val).cell_value ();
+  Cell struct_cell = decode_string_and_mixed_array (val, options).cell_value ();
   string_vector field_names = struct_cell(0).scalar_map_value ().fieldnames ();
   bool same_field_names = 1;
   for (octave_idx_type i = 1; i < struct_cell.numel (); ++i)
@@ -138,10 +139,10 @@ decode_object_array (const rapidjson::Value& val)
 
 
 octave_value
-decode_array_of_arrays (const rapidjson::Value& val)
+decode_array_of_arrays (const rapidjson::Value& val, const octave_value_list& options)
 {
   // Some arrays should be decoded as NDArrays and others as cell arrays
-  Cell cell = decode_string_and_mixed_array(val).cell_value ();
+  Cell cell = decode_string_and_mixed_array(val, options).cell_value ();
   // Only arrays with sub arrays of booleans and numericals will return NDArray
   bool is_bool = cell(0).is_bool_matrix ();
   dim_vector sub_array_dims = cell(0).dims ();
@@ -177,7 +178,7 @@ decode_array_of_arrays (const rapidjson::Value& val)
 }
 
 octave_value
-decode_array (const rapidjson::Value& val)
+decode_array (const rapidjson::Value& val, const octave_value_list& options)
 {
   // Handle empty arrays
   if (val.Empty ())
@@ -209,20 +210,20 @@ decode_array (const rapidjson::Value& val)
           || array_type == rapidjson::kFalseType)
         return decode_boolean_array (val);
       else if (array_type == rapidjson::kStringType)
-        return decode_string_and_mixed_array (val);
+        return decode_string_and_mixed_array (val, options);
       else if (array_type == rapidjson::kObjectType)
-        return decode_object_array (val);
+        return decode_object_array (val, options);
       else if (array_type == rapidjson::kArrayType)
-        return decode_array_of_arrays (val);
+        return decode_array_of_arrays (val, options);
       else
         error ("jsondecode.cc: Unidentified type.");
     }
   else
-    return decode_string_and_mixed_array (val);
+    return decode_string_and_mixed_array (val, options);
 }
 
 octave_value
-decode (const rapidjson::Value& val)
+decode (const rapidjson::Value& val, const octave_value_list& options)
 {
   if (val.IsBool ())
     return octave_value (val.GetBool ());
@@ -231,11 +232,11 @@ decode (const rapidjson::Value& val)
   else if (val.IsString ())
     return octave_value (val.GetString ());
   else if (val.IsObject ())
-    return decode_object (val);
+    return decode_object (val, options);
   else if (val.IsNull ())
     return NDArray (dim_vector (0,0));
   else if (val.IsArray ())
-    return decode_array (val);
+    return decode_array (val, options);
   else
     error ("jsondecode.cc: Unidentified type.");
 }
@@ -243,8 +244,9 @@ decode (const rapidjson::Value& val)
 DEFUN_DLD (jsondecode, args,, "Decode JSON") // FIXME: Add proper documentation
 {
   int nargin = args.length ();
-
-  if (nargin != 1)
+  // makeValidName options must be in pairs
+  // The number of arguments must be odd
+  if (! (nargin % 2))
     print_usage ();
 
   if(! args(0).is_string ())
@@ -259,5 +261,5 @@ DEFUN_DLD (jsondecode, args,, "Decode JSON") // FIXME: Add proper documentation
     error("jsondecode: Parse error at offset %u: %s\n",
           (unsigned)d.GetErrorOffset (),
           rapidjson::GetParseError_En (d.GetParseError ()));
-  return decode (d);
+  return decode (d, args.slice (1, nargin-1));
 }
