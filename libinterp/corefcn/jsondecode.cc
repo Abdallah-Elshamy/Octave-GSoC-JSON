@@ -84,7 +84,7 @@ decode_numeric_array (const rapidjson::Value& val)
   for (auto& elem : val.GetArray ())
     {
       if(elem.IsNull ())
-        retval(index) = octave::feval ("NaN")(0).double_value ();
+        retval(index) = octave_NaN;
       else
         retval(index) = decode_number (elem).double_value ();
       index++;
