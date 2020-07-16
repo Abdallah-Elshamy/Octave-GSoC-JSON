@@ -31,6 +31,21 @@
 octave_value
 decode (const rapidjson::Value& val, const octave_value_list& options);
 
+//! Checks if two instances of @ref string_vector are equal.
+//!
+//! @param a The first @ref string_vector.
+//! @param b The second @ref string_vector.
+//!
+//! @return @c bool that indicates if they are equal.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! string_vector a ({"foo", "bar"});
+//! string_vector b ({"foo", "baz"});
+//! bool is_equal = equals (a, b);
+//! @endcode
+
 bool
 equals (const string_vector& a, const string_vector& b)
 {
@@ -43,6 +58,20 @@ equals (const string_vector& a, const string_vector& b)
 
   return true;
 }
+
+//! Decodes a numerical JSON value into a scalar double.
+//!
+//! @param val JSON value that is guaranteed to be a numerical value.
+//!
+//! @return @ref octave_value that contains the numerical value of @p val.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("123");
+//! octave_value num = decode_number (d);
+//! @endcode
 
 octave_value
 decode_number (const rapidjson::Value& val)
@@ -61,6 +90,21 @@ decode_number (const rapidjson::Value& val)
     error ("jsondecode.cc: Unidentified type.");
 }
 
+//! Decodes a JSON object into a scalar struct.
+//!
+//! @param val JSON value that is guaranteed to be a JSON object.
+//! @param options @c ReplacementStyle and @c Prefix options with their values.
+//!
+//! @return @ref octave_value that contains the equivalent scalar struct of @p val.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("{\"a\": 1, \"b\": 2}");
+//! octave_value struct = decode_object (d, octave_value_list ());
+//! @endcode
+
 octave_value
 decode_object (const rapidjson::Value& val, const octave_value_list& options)
 {
@@ -75,6 +119,20 @@ decode_object (const rapidjson::Value& val, const octave_value_list& options)
     }
   return octave_value (retval);
 }
+
+//! Decodes a JSON array that contains only numerical or null values into an NDArray.
+//!
+//! @param val JSON value that is guaranteed to be a numeric array.
+//!
+//! @return @ref octave_value that contains the equivalent NDArray of @p val.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[1, 2, 3, 4]");
+//! octave_value numeric_array = decode_numeric_array (d);
+//! @endcode
 
 octave_value
 decode_numeric_array (const rapidjson::Value& val)
@@ -92,6 +150,20 @@ decode_numeric_array (const rapidjson::Value& val)
   return retval;
 }
 
+//! Decodes a JSON array that contains only boolean values into a boolNDArray.
+//!
+//! @param val JSON value that is guaranteed to be a boolean array.
+//!
+//! @return @ref octave_value that contains the equivalent boolNDArray of @p val.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[true, false, true]");
+//! octave_value boolean_array = decode_boolean_array (d);
+//! @endcode
+
 octave_value
 decode_boolean_array (const rapidjson::Value& val)
 {
@@ -102,6 +174,29 @@ decode_boolean_array (const rapidjson::Value& val)
   return retval;
 }
 
+//! Decodes a JSON array that contains different types or string values only into a Cell.
+//!
+//! @param val JSON value that is guaranteed to be a mixed or string array.
+//! @param options @c ReplacementStyle and @c Prefix options with their values.
+//!
+//! @return @ref octave_value that contains the equivalent Cell of @p val.
+//!
+//! @b Example (decoding a string array):
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[\"foo\", \"bar\", \"baz\"]");
+//! octave_value cell = decode_string_and_mixed_array (d, octave_value_list ());
+//! @endcode
+//!
+//! @b Example (decoding a mixed array):
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[\"foo\", 123, true]");
+//! octave_value cell = decode_string_and_mixed_array (d, octave_value_list ());
+//! @endcode
+
 octave_value
 decode_string_and_mixed_array (const rapidjson::Value& val, const octave_value_list& options)
 {
@@ -111,6 +206,30 @@ decode_string_and_mixed_array (const rapidjson::Value& val, const octave_value_l
     retval(index++) = decode (elem, options);
   return retval;
 }
+
+//! Decodes a JSON array that contains only objects into a Cell or a struct array
+//! depending on the similarity of the objects' keys.
+//!
+//! @param val JSON value that is guaranteed to be an object array.
+//! @param options @c ReplacementStyle and @c Prefix options with their values.
+//!
+//! @return @ref octave_value that contains the equivalent Cell or struct array of @p val.
+//!
+//! @b Example (returns a struct array):
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[{\"a\":1,\"b\":2},{\"a\":3,\"b\":4}]");
+//! octave_value object_array = decode_object_array (d, octave_value_list ());
+//! @endcode
+//!
+//! @b Example (returns a Cell):
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[{\"a\":1,\"b\":2},{\"b\":3,\"a\":4}]");
+//! octave_value object_array = decode_object_array (d, octave_value_list ());
+//! @endcode
 
 octave_value
 decode_object_array (const rapidjson::Value& val, const octave_value_list& options)
@@ -137,6 +256,29 @@ decode_object_array (const rapidjson::Value& val, const octave_value_list& optio
     return struct_cell;
 }
 
+//! Decodes a JSON array that contains only arrays into a Cell or an NDArray
+//! depending on the dimensions and the elements' type of the sub arrays.
+//!
+//! @param val JSON value that is guaranteed to be an array of arrays.
+//! @param options @c ReplacementStyle and @c Prefix options with their values.
+//!
+//! @return @ref octave_value that contains the equivalent Cell or NDArray of @p val.
+//!
+//! @b Example (returns an NDArray):
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[[1, 2], [3, 4]]");
+//! octave_value array_of_arrays = decode_array_of_arrays (d, octave_value_list ());
+//! @endcode
+//!
+//! @b Example (returns a Cell):
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[[1, 2], [3, 4, 5]]");
+//! octave_value array_of_arrays = decode_array_of_arrays (d, octave_value_list ());
+//! @endcode
 
 octave_value
 decode_array_of_arrays (const rapidjson::Value& val, const octave_value_list& options)
@@ -176,6 +318,23 @@ decode_array_of_arrays (const rapidjson::Value& val, const octave_value_list& op
         array(array_index++) = cell(k).array_value()(i);
   return array;
 }
+
+//! Decodes any type of JSON arrays. This function only serves as an interface
+//! by choosing which function to call from the previous functions after
+//! making some checks.
+//!
+//! @param val JSON value that is guaranteed to be an array.
+//! @param options @c ReplacementStyle and @c Prefix options with their values.
+//!
+//! @return @ref octave_value that contains the output of decoding @p val.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[[1, 2], [3, 4, 5]]");
+//! octave_value array = decode_array (d, octave_value_list ());
+//! @endcode
 
 octave_value
 decode_array (const rapidjson::Value& val, const octave_value_list& options)
@@ -221,6 +380,23 @@ decode_array (const rapidjson::Value& val, const octave_value_list& options)
   else
     return decode_string_and_mixed_array (val, options);
 }
+
+//! Decodes any JSON value. This function only serves as an interface
+//! by choosing which function to call from the previous functions after
+//! making some checks.
+//!
+//! @param val JSON value.
+//! @param options @c ReplacementStyle and @c Prefix options with their values.
+//!
+//! @return @ref octave_value that contains the output of decoding @p val.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! rapidjson::Document d;
+//! d.Parse ("[{\"a\":1,\"b\":2},{\"b\":3,\"a\":4}]");
+//! octave_value value = decode (d, octave_value_list ());
+//! @endcode
 
 octave_value
 decode (const rapidjson::Value& val, const octave_value_list& options)
