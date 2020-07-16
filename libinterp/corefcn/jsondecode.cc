@@ -49,6 +49,7 @@ decode (const rapidjson::Value& val, const octave_value_list& options);
 bool
 equals (const string_vector& a, const string_vector& b)
 {
+  // FIXME: move to string_vector class
   if (a.numel () != b.numel ())
     return false;
   octave_idx_type n = a.numel ();
