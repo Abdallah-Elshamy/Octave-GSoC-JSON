@@ -116,12 +116,13 @@ decode_object (const rapidjson::Value& val, const octave_value_list& options)
       octave_value_list args = octave_value_list (pair.name.GetString ());
       args.append (options);
       std::string validName = octave::feval (fcn_name,args)(0).string_value ();
-      retval.assign(validName, decode(pair.value, options));
+      retval.assign (validName, decode (pair.value, options));
     }
   return octave_value (retval);
 }
 
-//! Decodes a JSON array that contains only numerical or null values into an NDArray.
+//! Decodes a JSON array that contains only numerical or null values
+//! into an NDArray.
 //!
 //! @param val JSON value that is guaranteed to be a numeric array.
 //!
@@ -170,7 +171,8 @@ decode_boolean_array (const rapidjson::Value& val)
   return retval;
 }
 
-//! Decodes a JSON array that contains different types or string values only into a Cell.
+//! Decodes a JSON array that contains different types
+//! or string values only into a Cell.
 //!
 //! @param val JSON value that is guaranteed to be a mixed or string array.
 //! @param options @c ReplacementStyle and @c Prefix options with their values.
@@ -194,7 +196,8 @@ decode_boolean_array (const rapidjson::Value& val)
 //! @endcode
 
 octave_value
-decode_string_and_mixed_array (const rapidjson::Value& val, const octave_value_list& options)
+decode_string_and_mixed_array (const rapidjson::Value& val,
+                               const octave_value_list& options)
 {
   Cell retval (dim_vector (val.Size (), 1));
   octave_idx_type index = 0;
@@ -209,7 +212,8 @@ decode_string_and_mixed_array (const rapidjson::Value& val, const octave_value_l
 //! @param val JSON value that is guaranteed to be an object array.
 //! @param options @c ReplacementStyle and @c Prefix options with their values.
 //!
-//! @return @ref octave_value that contains the equivalent Cell or struct array of @p val.
+//! @return @ref octave_value that contains the equivalent Cell
+//! or struct array of @p val.
 //!
 //! @b Example (returns a struct array):
 //!
@@ -228,7 +232,8 @@ decode_string_and_mixed_array (const rapidjson::Value& val, const octave_value_l
 //! @endcode
 
 octave_value
-decode_object_array (const rapidjson::Value& val, const octave_value_list& options)
+decode_object_array (const rapidjson::Value& val,
+                     const octave_value_list& options)
 {
   Cell struct_cell = decode_string_and_mixed_array (val, options).cell_value ();
   string_vector field_names = struct_cell(0).scalar_map_value ().fieldnames ();
@@ -261,7 +266,8 @@ decode_object_array (const rapidjson::Value& val, const octave_value_list& optio
 //! @param val JSON value that is guaranteed to be an array of arrays.
 //! @param options @c ReplacementStyle and @c Prefix options with their values.
 //!
-//! @return @ref octave_value that contains the equivalent Cell or NDArray of @p val.
+//! @return @ref octave_value that contains the equivalent Cell
+//! or NDArray of @p val.
 //!
 //! @b Example (returns an NDArray):
 //!
@@ -280,7 +286,8 @@ decode_object_array (const rapidjson::Value& val, const octave_value_list& optio
 //! @endcode
 
 octave_value
-decode_array_of_arrays (const rapidjson::Value& val, const octave_value_list& options)
+decode_array_of_arrays (const rapidjson::Value& val,
+                        const octave_value_list& options)
 {
   // Some arrays should be decoded as NDArrays and others as cell arrays
   Cell cell = decode_string_and_mixed_array(val, options).cell_value ();
@@ -292,13 +299,14 @@ decode_array_of_arrays (const rapidjson::Value& val, const octave_value_list& op
   for (octave_idx_type i = 0; i < cell_numel; ++i)
     {
       // If one element is cell return the cell array as at least one of
-      // the sub arrays area either an array of: strings , objects or mixed array.
+      // the sub arrays area either an array of: strings, objects or mixed array
       if (cell(i).iscell ())
         return cell;
       // If not the same dim of elements or dim = 0 return cell array
       if (cell(i).dims () != sub_array_dims || sub_array_dims == dim_vector ())
         return cell;
-      // If not numeric sub arrays only or bool sub arrays only return cell array
+      // If not numeric sub arrays only or bool
+      // sub arrays only return cell array
       if(cell(i).is_bool_matrix () != is_bool)
         return cell;
     }
@@ -307,14 +315,14 @@ decode_array_of_arrays (const rapidjson::Value& val, const octave_value_list& op
 	array_dims.resize (sub_array_ndims + 1);
 	array_dims(0) = cell_numel;
 	for (auto i = 1; i < sub_array_ndims + 1; i++)
-  		array_dims(i) = sub_array_dims(i-1);
+  	array_dims(i) = sub_array_dims(i-1);
   NDArray array (array_dims);
 
   // Populate the array with specific order to generate MATLAB-identical output
   octave_idx_type array_index = 0;
   for (octave_idx_type i = 0; i < array.numel () / cell_numel; ++i)
     for (octave_idx_type k = 0; k < cell_numel; ++k)
-        array(array_index++) = cell(k).array_value()(i);
+      array(array_index++) = cell(k).array_value ()(i);
   return array;
 }
 
