@@ -110,7 +110,7 @@ octave_value
 decode_object (const rapidjson::Value& val, const octave_value_list& options)
 {
   octave_scalar_map retval;
-  for (auto& pair : val.GetObject ())
+  for (const auto& pair : val.GetObject ())
     {
       std::string fcn_name = "matlab.lang.makeValidName";
       octave_value_list args = octave_value_list (pair.name.GetString ());
@@ -140,7 +140,7 @@ decode_numeric_array (const rapidjson::Value& val)
 {
   NDArray retval (dim_vector (val.Size (), 1));
   octave_idx_type index = 0;
-  for (auto& elem : val.GetArray ())
+  for (const auto& elem : val.GetArray ())
     {
       if(elem.IsNull ())
         retval(index) = octave_NaN;
@@ -170,7 +170,7 @@ decode_boolean_array (const rapidjson::Value& val)
 {
   boolNDArray retval (dim_vector (val.Size (), 1));
   octave_idx_type index = 0;
-  for (auto& elem : val.GetArray ())
+  for (const auto& elem : val.GetArray ())
     retval(index++) = elem.GetBool ();
   return retval;
 }
@@ -203,7 +203,7 @@ decode_string_and_mixed_array (const rapidjson::Value& val, const octave_value_l
 {
   Cell retval (dim_vector (val.Size (), 1));
   octave_idx_type index = 0;
-  for (auto& elem : val.GetArray ())
+  for (const auto& elem : val.GetArray ())
     retval(index++) = decode (elem, options);
   return retval;
 }
@@ -348,7 +348,7 @@ decode_array (const rapidjson::Value& val, const octave_value_list& options)
   rapidjson::Type array_type = val[0].GetType ();
   // Check if the array is numeric and if it has multible types
   bool same_type = 1, is_numeric = 1;
-  for (auto& elem : val.GetArray ())
+  for (const auto& elem : val.GetArray ())
     {
       rapidjson::Type current_elem_type = elem.GetType ();
       if (! (current_elem_type == rapidjson::kNullType
