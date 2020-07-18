@@ -60,7 +60,7 @@ equals (const string_vector& a, const string_vector& b)
   return true;
 }
 
-//! Decodes a numerical JSON value into a scalar double.
+//! Decodes a numerical JSON value into a scalar number.
 //!
 //! @param val JSON value that is guaranteed to be a numerical value.
 //!
@@ -270,7 +270,7 @@ decode_object_array (const rapidjson::Value& val, const octave_value_list& optio
 //! @code{.cc}
 //! rapidjson::Document d;
 //! d.Parse ("[[1, 2], [3, 4]]");
-//! octave_value array_of_arrays = decode_array_of_arrays (d, octave_value_list ());
+//! octave_value array = decode_array_of_arrays (d, octave_value_list ());
 //! @endcode
 //!
 //! @b Example (returns a Cell):
@@ -278,7 +278,7 @@ decode_object_array (const rapidjson::Value& val, const octave_value_list& optio
 //! @code{.cc}
 //! rapidjson::Document d;
 //! d.Parse ("[[1, 2], [3, 4, 5]]");
-//! octave_value array_of_arrays = decode_array_of_arrays (d, octave_value_list ());
+//! octave_value cell = decode_array_of_arrays (d, octave_value_list ());
 //! @endcode
 
 octave_value
@@ -321,8 +321,7 @@ decode_array_of_arrays (const rapidjson::Value& val, const octave_value_list& op
 }
 
 //! Decodes any type of JSON arrays. This function only serves as an interface
-//! by choosing which function to call from the previous functions after
-//! making some checks.
+//! by choosing which function to call from the previous functions.
 //!
 //! @param val JSON value that is guaranteed to be an array.
 //! @param options @c ReplacementStyle and @c Prefix options with their values.
@@ -344,7 +343,7 @@ decode_array (const rapidjson::Value& val, const octave_value_list& options)
   if (val.Empty ())
     return NDArray (dim_vector (0,0));
 
-  // Compare with other elements to know if the array has multible types
+  // Compare with other elements to know if the array has multiple types
   rapidjson::Type array_type = val[0].GetType ();
   // Check if the array is numeric and if it has multible types
   bool same_type = 1, is_numeric = 1;
@@ -383,8 +382,7 @@ decode_array (const rapidjson::Value& val, const octave_value_list& options)
 }
 
 //! Decodes any JSON value. This function only serves as an interface
-//! by choosing which function to call from the previous functions after
-//! making some checks.
+//! by choosing which function to call from the previous functions.
 //!
 //! @param val JSON value.
 //! @param options @c ReplacementStyle and @c Prefix options with their values.
