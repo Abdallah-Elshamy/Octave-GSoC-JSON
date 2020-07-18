@@ -433,7 +433,11 @@ DEFUN_DLD (jsondecode, args,, "Decode JSON") // FIXME: Add proper documentation
 
   std::string json = args (0).string_value ();
   rapidjson::Document d;
-
+  // DOM is chosen instead of SAX as SAX publishes events to a handler that
+  // decides what to do depending on the event only. This will cause a problem
+  // in decoding JSON arrays as the output may be an array or a cell and that
+  // doesn't only depend on the event (startArray) but also on the types of
+  // the elements inside the array
   d.Parse <rapidjson::kParseNanAndInfFlag>(json.c_str ());
 
   if (d.HasParseError ())
