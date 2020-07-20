@@ -24,6 +24,15 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include <octave/oct.h>
+#include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
+
+template <typename T> void
+encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
+{
+
+}
 
 DEFUN_DLD (jsonencode, args,, "Encode JSON") // FIXME: Add proper documentation
 {
@@ -52,4 +61,22 @@ DEFUN_DLD (jsonencode, args,, "Encode JSON") // FIXME: Add proper documentation
         error ("jsonencode: Valid options are \'ConvertInfAndNaN\'"
                " and \'PrettyWriter\'");
     }
+  rapidjson::StringBuffer json;
+  if (PrettyWriter){}
+      // FIXME: fix the error comming from this statement
+  /*{
+      rapidjson::PrettyWriter<rapidjson::StringBuffer, rapidjson::UTF8<>,
+                              rapidjson::UTF8<>, rapidjson::CrtAllocator,
+                              rapidjson::kWriteNanAndInfFlag> writer (json);
+      encode (writer, args(0));
+    }*/
+  else
+    {
+      rapidjson::Writer<rapidjson::StringBuffer, rapidjson::UTF8<>,
+                        rapidjson::UTF8<>, rapidjson::CrtAllocator,
+                        rapidjson::kWriteNanAndInfFlag> writer (json);
+      encode (writer, args(0), ConvertInfAndNaN);
+    }
+
+  return octave_value (json.GetString ());
 }
