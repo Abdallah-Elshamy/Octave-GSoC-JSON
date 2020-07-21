@@ -28,10 +28,61 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 
+//! Encodes a scalar Octave value into a numerical JSON value.
+//!
+//! @param writer RapidJSON's writer that is responsible for generating json.
+//! @param obj scalar Octave value.
+//! @param ConvertInfAndNaN @c bool that converts @c Inf and @c NaN to @c null.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! octave_value obj (7);
+//! encode_numeric (writer, obj,true);
+//! @endcode
+
+template <typename T> void
+encode_numeric (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
+{
+  double value =  obj.scalar_value ();
+  if (obj.is_bool_scalar ())
+    writer.Bool (obj.bool_value ());
+  // If value > 999999, MATLAB will encode it in scientific notation (double)
+  else if (floor (value) == value && value <= 999999 && value >= -999999)
+    writer.Int64 (value);
+  // NA values doesn't exist in MATLAB, so I will decode it as null instead
+  else if (((octave::math::isnan (value) || std::isinf (value)
+            || std::isinf (-value)) && ConvertInfAndNaN)
+           || obj.isna ().bool_value ())
+    writer.Null ();
+  else if (obj.is_double_type ())
+  // FIXME: Print in scientific notation
+    writer.Double (value);
+  else
+    error ("jsonencode: Unsupported type.");
+}
+
+//! Encodes any Octave object. This function only serves as an interface
+//! by choosing which function to call from the previous functions.
+//!
+//! @param writer RapidJSON's writer that is responsible for generating json.
+//! @param obj any @ref octave_value that is supported.
+//! @param ConvertInfAndNaN @c bool that converts @c Inf and @c NaN to @c null.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! octave_value obj (true);
+//! encode (writer, obj,true);
+//! @endcode
+
 template <typename T> void
 encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
 {
-
+  if (obj.is_real_scalar ())
+    encode_numeric (writer, obj, ConvertInfAndNaN);
+  else
+    error ("jsonencode: Unsupported type.");
 }
 
 DEFUN_DLD (jsonencode, args,, "Encode JSON") // FIXME: Add proper documentation
