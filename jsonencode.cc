@@ -92,6 +92,45 @@ encode_string (T& writer, const octave_value& obj)
     writer.String ("");
 }
 
+//! Encodes a struct Octave value into a JSON object or a JSON array depending
+//! on the type of the struct (scalar struct or struct array.)
+//!
+//! @param writer RapidJSON's writer that is responsible for generating json.
+//! @param obj struct Octave value.
+//! @param ConvertInfAndNaN @c bool that converts @c Inf and @c NaN to @c null.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! octave_value obj (octave_map ());
+//! encode_struct (writer, obj,true);
+//! @endcode
+
+template <typename T> void
+encode_struct (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
+{
+  octave_map struct_array = obj.map_value ();
+  octave_idx_type numel = struct_array.numel ();
+  string_vector keys = struct_array.keys ();
+
+  if (numel > 1)
+    writer.StartArray ();
+
+  for (octave_idx_type i = 0; i < numel; ++i)
+    {
+      writer.StartObject ();
+      for (octave_idx_type k = 0; k < keys.numel (); ++k)
+        {
+          writer.Key (keys(k).c_str ());
+          encode (writer, struct_array(i).getfield (keys(k)), ConvertInfAndNaN);
+        }
+      writer.EndObject ();
+    }
+
+  if (numel > 1)
+    writer.EndArray ();
+}
+
 //! Encodes any Octave object. This function only serves as an interface
 //! by choosing which function to call from the previous functions.
 //!
@@ -113,6 +152,8 @@ encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
     encode_numeric (writer, obj, ConvertInfAndNaN);
   else if (obj.is_string ())
     encode_string (writer, obj);
+  else if (obj.isstruct ())
+    encode_struct (writer, obj, ConvertInfAndNaN);
   else
     error ("jsonencode: Unsupported type.");
 }
