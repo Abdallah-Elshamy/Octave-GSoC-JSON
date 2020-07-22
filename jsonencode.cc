@@ -62,6 +62,36 @@ encode_numeric (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN
     error ("jsonencode: Unsupported type.");
 }
 
+//! Encodes character vectors and arrays into JSON strings.
+//!
+//! @param writer RapidJSON's writer that is responsible for generating json.
+//! @param obj character vectors or character arrays.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! octave_value obj ("foo");
+//! encode_string (writer, obj,true);
+//! @endcode
+
+template <typename T> void
+encode_string (T& writer, const octave_value& obj)
+{
+  charMatrix char_mat = obj.char_matrix_value ();
+  octave_idx_type nrow = char_mat.rows ();
+  if (nrow > 1)
+    writer.StartArray ();
+
+  for (octave_idx_type i = 0; i < nrow; i++)
+    writer.String (char_mat.row_as_string (i).c_str ());
+
+  if (nrow > 1)
+   writer.EndArray ();
+
+  if (obj.isempty ())
+    writer.String ("");
+}
+
 //! Encodes any Octave object. This function only serves as an interface
 //! by choosing which function to call from the previous functions.
 //!
@@ -81,6 +111,8 @@ encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
 {
   if (obj.is_real_scalar ())
     encode_numeric (writer, obj, ConvertInfAndNaN);
+  else if (obj.is_string ())
+    encode_string (writer, obj);
   else
     error ("jsonencode: Unsupported type.");
 }
