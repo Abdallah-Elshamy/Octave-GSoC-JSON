@@ -131,6 +131,32 @@ encode_struct (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
     writer.EndArray ();
 }
 
+//! Encodes a Cell Octave value into a JSON array
+//!
+//! @param writer RapidJSON's writer that is responsible for generating json.
+//! @param obj Cell Octave value.
+//! @param ConvertInfAndNaN @c bool that converts @c Inf and @c NaN to @c null.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! octave_value obj (cell ());
+//! encode_cell (writer, obj,true);
+//! @endcode
+
+template <typename T> void
+encode_cell (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
+{
+  Cell cell = obj.cell_value ();
+
+  writer.StartArray ();
+
+  for (octave_idx_type i = 0; i < cell.numel (); ++i)
+    encode (writer, cell(i), ConvertInfAndNaN);
+
+  writer.EndArray ();
+}
+
 //! Encodes any Octave object. This function only serves as an interface
 //! by choosing which function to call from the previous functions.
 //!
@@ -154,6 +180,8 @@ encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
     encode_string (writer, obj);
   else if (obj.isstruct ())
     encode_struct (writer, obj, ConvertInfAndNaN);
+  else if (obj.iscell ())
+    encode_cell (writer, obj, ConvertInfAndNaN);
   else
     error ("jsonencode: Unsupported type.");
 }
