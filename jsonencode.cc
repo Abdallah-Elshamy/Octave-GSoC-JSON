@@ -182,6 +182,18 @@ encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
     encode_struct (writer, obj, ConvertInfAndNaN);
   else if (obj.iscell ())
     encode_cell (writer, obj, ConvertInfAndNaN);
+  else if (obj.class_name () == "containers.Map")
+    // To extract the data in containers.Map, Convert it to a struct.
+    // The struct will have a "map" field that its value is a struct that
+    // contains the desired data.
+    // In order to convert it we will need to disable the
+    // "Octave:classdef-to-struct" warning and re-enable it.
+    {
+      set_warning_state ("Octave:classdef-to-struct", "off");
+      encode_struct (writer, obj.scalar_map_value ().getfield ("map"),
+                     ConvertInfAndNaN);
+      set_warning_state ("Octave:classdef-to-struct", "on");
+    }
   else
     error ("jsonencode: Unsupported type.");
 }
