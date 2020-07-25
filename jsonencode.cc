@@ -24,6 +24,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include <octave/oct.h>
+#include "oct-string.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
@@ -217,9 +218,9 @@ DEFUN_DLD (jsonencode, args,, "Encode JSON") // FIXME: Add proper documentation
         error ("jsonencode: Value for options must be logical scalar");
 
       std::string option_name = args(i++).string_value ();
-      if (option_name == "ConvertInfAndNaN")
+      if (octave::string::strcmpi(option_name, "ConvertInfAndNaN"))
         ConvertInfAndNaN = args(i).bool_value ();
-      else if (option_name == "PrettyWriter")
+      else if (octave::string::strcmpi(option_name, "PrettyWriter"))
         PrettyWriter = args(i).bool_value ();
       else
         error ("jsonencode: Valid options are \'ConvertInfAndNaN\'"
