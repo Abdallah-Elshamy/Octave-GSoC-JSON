@@ -48,8 +48,12 @@ encode_numeric (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN
   double value =  obj.scalar_value ();
   if (obj.is_bool_scalar ())
     writer.Bool (obj.bool_value ());
+  // Any numeric input from the interpreter will be in double type so in order
+  // to detect ints, we will check if the floor of the input and the input are
+  // equal using fabs(A - B) < epsilon method as it is more accurate.
   // If value > 999999, MATLAB will encode it in scientific notation (double)
-  else if (floor (value) == value && value <= 999999 && value >= -999999)
+  else if (fabs (floor (value) - value) < std::numeric_limits<double>::epsilon ()
+           && value <= 999999 && value >= -999999)
     writer.Int64 (value);
   // NA values doesn't exist in MATLAB, so I will decode it as null instead
   else if (((octave::math::isnan (value) || std::isinf (value)
