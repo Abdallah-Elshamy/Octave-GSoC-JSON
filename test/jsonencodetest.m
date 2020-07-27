@@ -124,6 +124,7 @@
 
 % Customized encoding of Nan, Inf, -Inf
 %!test
+%! data = struct ('numericArray', [7, NaN, Inf, -Inf]);
 %! exp  = '{"numericArray":[7,NaN,Infinity,-Infinity]}';
 %! act  = jsonencode (data, 'ConvertInfAndNaN', false);
 %! assert (isequal (exp, act));
