@@ -58,6 +58,32 @@
 %! act  = jsonencode (data, 'ConvertInfAndNaN', false);
 %! assert (isequal (exp, act));
 
+% try different dimensions for the array
+%!test
+%! data = cat (3, [1, 3; 5, 7], [2, 4; 6, 8], [-1, NaN; Inf, -Inf]);
+%! exp  = '[[[1,2,-1],[3,4,NaN]],[[5,6,Infinity],[7,8,-Infinity]]]';
+%! act  = jsonencode (data, 'ConvertInfAndNaN', false);
+%! assert (isequal (exp, act));
+
+% try different dimensions for the array
+%!test
+%! data = cat (3, [1; 7; 11], [4; 8; 12]);
+%! exp  = '[[[1,4]],[[7,8]],[[11,12]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array
+%!test
+%! tmp1 = cat (3, [1, 3; 5, 7; 9, 11; 13, 15], [2, 4; 6, 8; 10, 12; 14, 16]);
+%! tmp2 = cat (3, [-1, -3; -5, -7; -9, -11; -13, -15], ...
+%!             [-2, -4; -6, -8; -10, -12; -14, -16]);
+%! data = cat (4, tmp1, tmp2);
+%! exp  = ['[[[[1,-1],[2,-2]],[[3,-3],[4,-4]]],[[[5,-5],[6,-6]],[[7,-7],', ...
+%!         '[8,-8]]],[[[9,-9],[10,-10]],[[11,-11],[12,-12]]],', ...
+%!         '[[[13,-13],[14,-14]],[[15,-15],[16,-16]]]]'];
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
 %!test
 %! data = [true false; true false; true false];
 %! exp  = '[[true,false],[true,false],[true,false]]';
