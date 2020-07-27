@@ -32,6 +32,31 @@
 %! act  = jsonencode (data);
 %! assert (isequal (exp, act));
 
+%!test
+%! data = cat (3, ['a', 'b'; 'c', 'd'], ['e', 'f'; 'g', 'h']);
+%! exp  = '[["ab","ef"],["cd","gh"]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try different dimensions for the array
+%!test
+%! data = cat (3, ['a', 'b'; 'c', 'd'; '1', '2'], ['e', 'f'; 'g', 'h'; '3', '4']);
+%! exp  = '[["ab","ef"],["cd","gh"],["12","34"]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array
+%!test
+%! tmp1 = cat (3, ['1', '3'; '5', '7'; '9', 'e'; 'f', 'g'], ...
+%!                ['2', '4'; '6', '8'; 'a', 'b'; 'c', 'd']);
+%! tmp2 = cat (3, ['1', '3'; '5', '7'; '9', 'e'; 'f', 'g'], ...
+%!             ['2', '4'; '6', '8'; 'a', 'b'; 'c', 'd']);
+%! data = cat (4, tmp1, tmp2);
+%! exp  = ['[[["13","13"],["24","24"]],[["57","57"],["68","68"]],', ...
+%!         '[["9e","9e"],["ab","ab"]],[["fg","fg"],["cd","cd"]]]'];
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
 %% Test 3: encode numeric and logical arrays (with NaN and Inf)
 % test simple vectors
 %!assert (isequal (jsonencode ([]), '[]'));
