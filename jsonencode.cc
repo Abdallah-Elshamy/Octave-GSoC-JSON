@@ -25,6 +25,7 @@
 
 #include <octave/oct.h>
 #include "oct-string.h"
+#include "builtin-defun-decls.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
@@ -162,6 +163,66 @@ encode_cell (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
   writer.EndArray ();
 }
 
+//! Encodes a numeric or logical Octave array into a JSON array
+//!
+//! @param writer RapidJSON's writer that is responsible for generating json.
+//! @param obj numeric or logical Octave array.
+//! @param ConvertInfAndNaN @c bool that converts @c Inf and @c NaN to @c null.
+//!
+//! @b Example:
+//!
+//! @code{.cc}
+//! octave_value obj (NDArray ());
+//! encode_array (writer, obj,true);
+//! @endcode
+
+template <typename T> void
+encode_array (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
+{
+  NDArray array = obj.array_value ();
+  if (array.isempty ())
+    {
+      writer.StartArray ();
+      writer.EndArray ();
+    }
+  else if (array.isvector ())
+    {
+      writer.StartArray ();
+      for (octave_idx_type i = 0; i < array.numel (); ++i)
+        {
+          if (obj.islogical ())
+            encode_numeric (writer, bool (array(i)), ConvertInfAndNaN);
+          else
+            encode_numeric (writer, array(i), ConvertInfAndNaN);
+        }
+      writer.EndArray ();
+    }
+  else
+    {
+      octave_idx_type idx;
+      octave_idx_type ndims = array.ndims ();
+      dim_vector dims = array.dims ();
+      for (idx = 0; idx < ndims; ++idx)
+        if (dims(idx) != 1)
+          break;
+      // Create the dimensions that will be used to call "num2cell"
+      // We called "num2cell" to divide the array to smaller sub arrays
+      // in order to encode it recursively.
+      // The recursive encoding is necessary to support encoding of
+      // higher-dimensional arrays.
+      RowVector conversion_dims;
+      conversion_dims.resize (ndims - 1);
+      for (octave_idx_type i = 0; i < idx; ++i)
+        conversion_dims(i) = i + 1;
+      for (octave_idx_type i = idx ; i < ndims - 1; ++i)
+        conversion_dims(i) = i + 2;
+
+      octave_value_list args (obj);
+      args.append (conversion_dims);
+      encode_cell (writer, Fnum2cell (args)(0), ConvertInfAndNaN);
+    }
+}
+
 //! Encodes any Octave object. This function only serves as an interface
 //! by choosing which function to call from the previous functions.
 //!
@@ -181,6 +242,9 @@ encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
 {
   if (obj.is_real_scalar ())
     encode_numeric (writer, obj, ConvertInfAndNaN);
+  // As I checked for scalars, this will detect numeric & logical arrays
+  else if (obj.isnumeric () || obj.islogical ())
+    encode_array (writer, obj, ConvertInfAndNaN);
   else if (obj.is_string ())
     encode_string (writer, obj);
   else if (obj.isstruct ())
