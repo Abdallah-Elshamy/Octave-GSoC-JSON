@@ -83,19 +83,43 @@ encode_numeric (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN
 template <typename T> void
 encode_string (T& writer, const octave_value& obj)
 {
-  charMatrix char_mat = obj.char_matrix_value ();
-  octave_idx_type nrow = char_mat.rows ();
-  if (nrow > 1)
-    writer.StartArray ();
-
-  for (octave_idx_type i = 0; i < nrow; i++)
-    writer.String (char_mat.row_as_string (i).c_str ());
-
-  if (nrow > 1)
-   writer.EndArray ();
-
-  if (obj.isempty ())
+  charNDArray array = obj.char_array_value ();
+  if (array.isempty ())
     writer.String ("");
+  else if (array.isvector ())
+    {
+      std::string char_vector = "";
+      for (octave_idx_type i = 0; i < array.numel (); ++i)
+        char_vector += array(i);
+      writer.String (char_vector.c_str ());
+    }
+  else
+    {
+      octave_idx_type idx;
+      octave_idx_type ndims = array.ndims ();
+      dim_vector dims = array.dims ();
+      // The second dimension contains the number of the chars in the char
+      // vector. We want to treat them as a one object, so we replace it with 1
+      dims(1) = 1;
+      for (idx = 0; idx < ndims; ++idx)
+        if (dims(idx) != 1)
+          break;
+      // Create the dimensions that will be used to call "num2cell"
+      // We called "num2cell" to divide the array to smaller sub arrays
+      // in order to encode it recursively.
+      // The recursive encoding is necessary to support encoding of
+      // higher-dimensional arrays.
+      RowVector conversion_dims;
+      conversion_dims.resize (ndims - 1);
+      for (octave_idx_type i = 0; i < idx; ++i)
+        conversion_dims(i) = i + 1;
+      for (octave_idx_type i = idx ; i < ndims - 1; ++i)
+        conversion_dims(i) = i + 2;
+
+      octave_value_list args (obj);
+      args.append (conversion_dims);
+      encode_cell (writer, Fnum2cell (args)(0), true);
+    }
 }
 
 //! Encodes a struct Octave value into a JSON object or a JSON array depending
