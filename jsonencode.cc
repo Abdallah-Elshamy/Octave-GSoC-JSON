@@ -319,14 +319,15 @@ DEFUN_DLD (jsonencode, args,, "Encode JSON") // FIXME: Add proper documentation
                " and \'PrettyWriter\'");
     }
   rapidjson::StringBuffer json;
-  if (PrettyWriter){}
-      // FIXME: fix the error comming from this statement
-  /*{
+  if (PrettyWriter)
+    // In order to use the "PrettyWriter" option, you must use the development
+    // version of RapidJSON. The release causes an error in compilation.
+    {
       rapidjson::PrettyWriter<rapidjson::StringBuffer, rapidjson::UTF8<>,
                               rapidjson::UTF8<>, rapidjson::CrtAllocator,
                               rapidjson::kWriteNanAndInfFlag> writer (json);
-      encode (writer, args(0));
-    }*/
+      encode (writer, args(0), ConvertInfAndNaN);
+    }
   else
     {
       rapidjson::Writer<rapidjson::StringBuffer, rapidjson::UTF8<>,
