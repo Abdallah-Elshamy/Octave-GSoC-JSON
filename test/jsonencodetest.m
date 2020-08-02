@@ -90,10 +90,35 @@
 %! act  = jsonencode (data, 'ConvertInfAndNaN', false);
 %! assert (isequal (exp, act));
 
-% try different dimensions for the array
+% try different dimensions for the array with one of its dimensions equals one
 %!test
 %! data = cat (3, [1; 7; 11], [4; 8; 12]);
 %! exp  = '[[[1,4]],[[7,8]],[[11,12]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with one of its dimensions equals one
+%!test
+%! tmp1 = cat (3, [5, 7], [2, 4]);
+%! tmp2 = cat (3, [-1, -3], [-2, -4]);
+%! data = cat (4, tmp1, tmp2);
+%! exp  = '[[[[5,-1],[2,-2]],[[7,-3],[4,-4]]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with one of its dimensions equals one
+%!test
+%! tmp1 = cat (3, [5; 7], [2; 4]);
+%! tmp2 = cat (3, [-1; -3], [-2; -4]);
+%! data = cat (4, tmp1, tmp2);
+%! exp  = '[[[[5,-1],[2,-2]]],[[[7,-3],[4,-4]]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with one of its dimensions equals one
+%!test
+%! data = cat (4, [1, 3; 5, 7], [-1, -3; -5, -7]);
+%! exp  = '[[[[1,-1]],[[3,-3]]],[[[5,-5]],[[7,-7]]]]';
 %! act  = jsonencode (data);
 %! assert (isequal (exp, act));
 
