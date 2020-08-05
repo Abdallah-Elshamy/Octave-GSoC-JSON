@@ -122,6 +122,90 @@
 %! act  = jsonencode (data);
 %! assert (isequal (exp, act));
 
+% try higher dimensions for the array with one of its dimensions equals one
+%!test
+%! data = ones ([1 1 1 1 1 6]);
+%! exp  = '[1,1,1,1,1,1]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with one of its dimensions equals one
+%!test
+%! data = ones ([1 2 2 2 2]);
+%! exp  = '[[[[[1,1],[1,1]],[[1,1],[1,1]]],[[[1,1],[1,1]],[[1,1],[1,1]]]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with some of its dimensions equal one
+%!test
+%! data = ones ([1 2 2 1 2]);
+%! exp  = '[[[[[1,1]],[[1,1]]],[[[1,1]],[[1,1]]]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with some of its dimensions equal one
+%!test
+%! data = ones ([1 2 1 2 1 2]);
+%! exp  = '[[[[[[1,1]],[[1,1]]]],[[[[1,1]],[[1,1]]]]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with some of its dimensions equal one
+%!test
+%! data = ones ([1 1 2 1 2 1 2]);
+%! exp  = '[[[[[[[1,1]],[[1,1]]]],[[[[1,1]],[[1,1]]]]]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with some of its dimensions equal one
+%!test
+%! data = ones ([1 2 2 1 1 2]);
+%! exp  = '[[[[[[1,1]]],[[[1,1]]]],[[[[1,1]]],[[[1,1]]]]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with some of its dimensions equal one
+%!test
+%! data = ones ([1 2 1 3 1 1 1 2]);
+%! exp  = ['[[[[[[[[1,1]]]],[[[[1,1]]]],[[[[1,1]]]]]],[[[[[[1,1]]]],', ...
+%!         '[[[[1,1]]]],[[[[1,1]]]]]]]]'];
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with some of its dimensions equal one
+%!test
+%! data = ones ([1 1 1 1 2 1 1 1 2]);
+%! exp  = '[[[[[[[[[1,1]]]],[[[[1,1]]]]]]]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with some of its dimensions equal one
+%!test
+%! data = ones ([1 3 2 1 1 2 1 2 2]);
+%! exp  = ['[[[[[[[[[1,1],[1,1]]],[[[1,1],[1,1]]]]]],[[[[[[1,1],', ...
+%!         '[1,1]]],[[[1,1],[1,1]]]]]]],[[[[[[[1,1],[1,1]]],[[[1,', ...
+%!         '1],[1,1]]]]]],[[[[[[1,1],[1,1]]],[[[1,1],[1,1]]]]]]],', ...
+%!         '[[[[[[[1,1],[1,1]]],[[[1,1],[1,1]]]]]],[[[[[[1,1],[1,', ...
+%!         '1]]],[[[1,1],[1,1]]]]]]]]]'];
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try higher dimensions for the array with some of its dimensions equal one
+%!test
+%! data = ones ([1 1 1 1 1 1 2 1 1 2 2 3 1 1 1 1 1 1 1 2]);
+%! exp  =  ['[[[[[[[[[[[[[[[[[[[[1,1]]]]]]]],[[[[[[[[1,1]]]]]]]],', ...
+%!          '[[[[[[[[1,1]]]]]]]]],[[[[[[[[[1,1]]]]]]]],[[[[[[[[1,1]]]]]', ...
+%!          ']]],[[[[[[[[1,1]]]]]]]]]],[[[[[[[[[[1,1]]]]]]]],[[[[[[[[1,1]', ...
+%!          ']]]]]]],[[[[[[[[1,1]]]]]]]]],[[[[[[[[[1,1]]]]]]]],[[[[[[', ...
+%!          '[[1,1]]]]]]]],[[[[[[[[1,1]]]]]]]]]]]]],[[[[[[[[[[[[[1,1]', ...
+%!          ']]]]]]],[[[[[[[[1,1]]]]]]]],[[[[[[[[1,1]]]]]]]]],[[[[[[[[', ...
+%!          '[1,1]]]]]]]],[[[[[[[[1,1]]]]]]]],[[[[[[[[1,1]]]]]]]]]],[[[', ...
+%!          '[[[[[[[1,1]]]]]]]],[[[[[[[[1,1]]]]]]]],[[[[[[[[1,1]]]]]]]]],', ...
+%!          '[[[[[[[[[1,1]]]]]]]],[[[[[[[[1,1]]]]]]]],[[[[[[[[1,1]]', ...
+%!          ']]]]]]]]]]]]]]]]]]'];
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
 % try higher dimensions for the array
 %!test
 %! tmp1 = cat (3, [1, 3; 5, 7; 9, 11; 13, 15], [2, 4; 6, 8; 10, 12; 14, 16]);
