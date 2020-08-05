@@ -57,6 +57,27 @@
 %! act  = jsonencode (data);
 %! assert (isequal (exp, act));
 
+% try different dimensions for the array with one of its dimensions equals one
+%!test
+%! data = cat (4, ['a'; 'b'], ['c'; 'd']);
+%! exp  = '[[["a","c"]],[["b","d"]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try different dimensions for the array with one of its dimensions equals one
+%!test
+%! data = cat (8, ['a'], ['c']);
+%! exp  = '"ac"';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
+% try different dimensions for the array with one of its dimensions equals one
+%!test
+%! data = cat (8, ['a'; 'b'; '1'], ['c'; 'd'; '2']);
+%! exp  = '[[[[[[["a","c"]]]]]],[[[[[["b","d"]]]]]],[[[[[["1","2"]]]]]]]';
+%! act  = jsonencode (data);
+%! assert (isequal (exp, act));
+
 %% Test 3: encode numeric and logical arrays (with NaN and Inf)
 % test simple vectors
 %!assert (isequal (jsonencode ([]), '[]'));
