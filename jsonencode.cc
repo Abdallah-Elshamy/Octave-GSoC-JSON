@@ -72,6 +72,8 @@ encode_numeric (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN
 //!
 //! @param writer RapidJSON's writer that is responsible for generating json.
 //! @param obj character vectors or character arrays.
+//! @param org_dims The original dimensions of the array being encoded.
+//! @param level The level of recursion for the function.
 //!
 //! @b Example:
 //!
@@ -81,44 +83,97 @@ encode_numeric (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN
 //! @endcode
 
 template <typename T> void
-encode_string (T& writer, const octave_value& obj)
+encode_string (T& writer, const octave_value& obj,
+               const dim_vector& org_dims, int level = 0)
 {
   charNDArray array = obj.char_array_value ();
   if (array.isempty ())
     writer.String ("");
   else if (array.isvector ())
     {
-      std::string char_vector = "";
-      for (octave_idx_type i = 0; i < array.numel (); ++i)
-        char_vector += array(i);
-      writer.String (char_vector.c_str ());
+      if (level == 0)
+        {
+          std::string char_vector = "";
+          for (octave_idx_type i = 0; i < array.numel (); ++i)
+            char_vector += array(i);
+          writer.String (char_vector.c_str ());
+        }
+      else
+        for (octave_idx_type i = 0; i < array.numel () / org_dims(1); ++i)
+          {
+            std::string char_vector = "";
+            for (octave_idx_type k = 0; k < org_dims(1); ++k)
+              char_vector += array(i * org_dims(1) + k);
+            writer.String (char_vector.c_str ());
+          }
     }
   else
     {
       octave_idx_type idx;
       octave_idx_type ndims = array.ndims ();
       dim_vector dims = array.dims ();
-      // The second dimension contains the number of the chars in the char
-      // vector. We want to treat them as a one object, so we replace it with 1
-      dims(1) = 1;
-      for (idx = 0; idx < ndims; ++idx)
-        if (dims(idx) != 1)
-          break;
-      // Create the dimensions that will be used to call "num2cell"
-      // We called "num2cell" to divide the array to smaller sub arrays
-      // in order to encode it recursively.
-      // The recursive encoding is necessary to support encoding of
-      // higher-dimensional arrays.
-      RowVector conversion_dims;
-      conversion_dims.resize (ndims - 1);
-      for (octave_idx_type i = 0; i < idx; ++i)
-        conversion_dims(i) = i + 1;
-      for (octave_idx_type i = idx ; i < ndims - 1; ++i)
-        conversion_dims(i) = i + 2;
 
-      octave_value_list args (obj);
-      args.append (conversion_dims);
-      encode_cell (writer, Fnum2cell (args)(0), true);
+      // In this case, we already have a vector. So,  we transform it to 2-D
+      // vector in order to be detected by "isvector" in the recursive call
+      if (dims.num_ones () == ndims - 1)
+      {
+        // Place an opening and a closing bracket (represents a dimension)
+        // for every dimension that equals 1 till we reach the 2-D vector
+        if (level != 0)
+          for (int i = level; i < ndims - 1; ++i)
+            writer.StartArray ();
+
+        encode_string (writer, array.as_row (), org_dims, level);
+
+        if (level != 0)
+          for (int i = level; i < ndims - 1; ++i)
+            writer.EndArray ();
+      }
+      else
+        {
+          // We place an opening and a closing bracket for each dimension
+          // that equals 1 to perserve the number of dimensions when decoding
+          // the array after encoding it.
+          if (org_dims (level) == 1 && level != 1)
+          {
+            writer.StartArray ();
+            encode_string (writer, array, org_dims, level + 1);
+            writer.EndArray ();
+          }
+          else
+            {
+              // The second dimension contains the number of the chars in the char
+              // vector. We want to treat them as a one object, so we replace it with 1
+              dims(1) = 1;
+
+              for (idx = 0; idx < ndims; ++idx)
+                if (dims(idx) != 1)
+                  break;
+              // Create the dimensions that will be used to call "num2cell"
+              // We called "num2cell" to divide the array to smaller sub arrays
+              // in order to encode it recursively.
+              // The recursive encoding is necessary to support encoding of
+              // higher-dimensional arrays.
+              RowVector conversion_dims;
+              conversion_dims.resize (ndims - 1);
+              for (octave_idx_type i = 0; i < idx; ++i)
+                conversion_dims(i) = i + 1;
+              for (octave_idx_type i = idx ; i < ndims - 1; ++i)
+                conversion_dims(i) = i + 2;
+
+              octave_value_list args (obj);
+              args.append (conversion_dims);
+
+              Cell sub_arrays = Fnum2cell (args)(0).cell_value ();
+
+              writer.StartArray ();
+
+              for (octave_idx_type i = 0; i < sub_arrays.numel (); ++i)
+                encode_string (writer, sub_arrays(i), org_dims, level + 1);
+
+              writer.EndArray ();
+            }
+        }
     }
 }
 
@@ -316,7 +371,7 @@ encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
   else if (obj.isnumeric () || obj.islogical ())
     encode_array (writer, obj, ConvertInfAndNaN, obj.dims ());
   else if (obj.is_string ())
-    encode_string (writer, obj);
+    encode_string (writer, obj, obj.dims ());
   else if (obj.isstruct ())
     encode_struct (writer, obj, ConvertInfAndNaN);
   else if (obj.iscell ())
