@@ -91,6 +91,9 @@ encode_string (T& writer, const octave_value& obj,
     writer.String ("");
   else if (array.isvector ())
     {
+      // Handle the special case when the input is a vector with more than
+      // 2 dimensions (e.g. cat (8, ['a'], ['c'])). In this case, we don't
+      // split the inner vectors of the input. we merge them into one.
       if (level == 0)
         {
           std::string char_vector = "";
@@ -117,9 +120,12 @@ encode_string (T& writer, const octave_value& obj,
       // vector in order to be detected by "isvector" in the recursive call
       if (dims.num_ones () == ndims - 1)
       {
-        // Place an opening and a closing bracket (represents a dimension)
-        // for every dimension that equals 1 till we reach the 2-D vector
+        // Handle the special case when the input is a vector with more than
+        // 2 dimensions (e.g. cat (8, ['a'], ['c'])). In this case, we don't
+        // add dimension brackets and treat it as if it is a vector
         if (level != 0)
+          // Place an opening and a closing bracket (represents a dimension)
+          // for every dimension that equals 1 till we reach the 2-D vector
           for (int i = level; i < ndims - 1; ++i)
             writer.StartArray ();
 
@@ -289,13 +295,16 @@ encode_array (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN,
       // vector in order to be detected by "isvector" in the recursive call
       if (dims.num_ones () == ndims - 1)
         {
-          // Place an opening and a closing bracket (represents a dimension)
-          // for every dimension that equals 1 till we reach the 2-D vector
+          // Handle the special case when the input is a vector with more than
+          // 2 dimensions (e.g. ones ([1 1 1 1 1 6])). In this case, we don't
+          // add dimension brackets and treat it as if it is a vector
           if (level != 0)
+            // Place an opening and a closing bracket (represents a dimension)
+            // for every dimension that equals 1 till we reach the 2-D vector
             for (int i = level; i < ndims - 1; ++i)
               writer.StartArray ();
 
-          encode_array(writer, array.as_row (), ConvertInfAndNaN, org_dims);
+          encode_array (writer, array.as_row (), ConvertInfAndNaN, org_dims);
 
           if (level != 0)
             for (int i = level; i < ndims - 1; ++i)
