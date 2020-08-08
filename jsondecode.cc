@@ -405,11 +405,11 @@ octave_value
 decode (const rapidjson::Value& val, const octave_value_list& options)
 {
   if (val.IsBool ())
-    return octave_value (val.GetBool ());
+    return val.GetBool ();
   else if (val.IsNumber ())
     return decode_number (val);
   else if (val.IsString ())
-    return octave_value (val.GetString ());
+    return val.GetString ();
   else if (val.IsObject ())
     return decode_object (val, options);
   else if (val.IsNull ())
