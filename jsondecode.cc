@@ -420,7 +420,106 @@ decode (const rapidjson::Value& val, const octave_value_list& options)
     error ("jsondecode.cc: Unidentified type.");
 }
 
-DEFUN_DLD (jsondecode, args,, "Decode JSON") // FIXME: Add proper documentation
+DEFUN_DLD (jsondecode, args, ,
+           doc: /* -*- texinfo -*-
+@deftypefn  {} {@var{object} =} jsondecode (@var{json})
+@deftypefnx {} {@var{object} =} jsondecode (@var{json}, "ReplacementStyle", @var{rs})
+@deftypefnx {} {@var{object} =} jsondecode (@var{json}, "Prefix", @var{pfx})
+@deftypefnx {} {@var{object} =} jsondecode (@var{json}, @dots{})
+
+Decode text that is formatted in JSON.
+
+The input @var{json} is a string that contains JSON text.
+The output @var{object} is an Octave object that contains the result
+of decoding @var{json}.
+
+For more information about the options @qcode{"ReplacementStyle"} and
+@qcode{"Prefix"}, see @ref{matlab.lang.makeValidName}.
+
+-NOTE: It is not guaranteed to get the same JSON text if you decode
+and then encode it as some names may change by @ref{matlab.lang.makeValidName}.
+
+This table shows the conversions from JSON data types to Octave data types:
+
+@table @asis
+@item @qcode{"Boolean"}
+Scalar @qcode{"logical"}
+
+@item @qcode{"Number"}
+Scalar @qcode{"double"}
+
+@item @qcode{"String"}
+@qcode{"Vector"} of chars
+
+@item JSON @qcode{"Object"}
+Scalar @qcode{"struct"} (field names of the struct may be different from
+the keys of the JSON object due to @ref{matlab.lang.makeValidName})
+
+@item @qcode{"Array"} of different data types
+@qcode{"Cell"} array
+
+@item @qcode{"Array"} of booleans
+@qcode{"Array"} of logicals
+
+@item @qcode{"Array"} of numbers
+@qcode{"Array"} of doubles
+
+@item @qcode{"Array"} of strings
+@qcode{"Cell"} array of vectors of chars
+
+@item @qcode{"Array"} of JSON objects (All objects have the same field names)
+@qcode{"Struct array"}
+
+@item @qcode{"Array"} of JSON objects (Objects have different field names)
+@qcode{"Cell"} array of scalar structs
+
+@item @qcode{"null"} inside a numeric array
+@qcode{"NaN"}
+
+@item @qcode{"null"} inside a non-numeric array
+Empty @qcode{"Array"} of doubles (@qcode{"[]"})
+@end table
+
+Examples:
+
+@example
+@group
+jsondecode ('[1, 2, null, 3]')
+    @result{} 1  2  NaN  3
+@end group
+
+@group
+jsondecode ('["foo", "bar", ["foo", "bar"]]')
+    @result{} ans =
+                {
+                  [1,1] = foo
+                  [2,1] = bar
+                  [3,1] =
+                  {
+                    [1,1] = foo
+                    [2,1] = bar
+                  }
+
+                }
+@end group
+
+@group
+jsondecode ('{"nu#m#ber": 7, "s#tr#ing": "hi"}', 'ReplacementStyle', 'delete')
+    @result{} scalar structure containing the fields:
+                number =  7
+                string = hi
+@end group
+
+@group
+jsondecode ('{"1": "one", "2": "two"}', 'Prefix', 'm_')
+    @result{} scalar structure containing the fields:
+                m_1 = one
+                m_2 = two
+@end group
+@end example
+
+@seealso{jsonencode, matlab.lang.makeValidName}
+@end deftypefn */)
 {
   int nargin = args.length ();
   // makeValidName options must be in pairs
