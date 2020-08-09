@@ -401,7 +401,149 @@ encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
     error ("jsonencode: Unsupported type.");
 }
 
-DEFUN_DLD (jsonencode, args,, "Encode JSON") // FIXME: Add proper documentation
+DEFUN_DLD (jsonencode, args, ,
+           doc: /* -*- texinfo -*-
+@deftypefn  {} {@var{json} =} jsonencode (@var{object})
+@deftypefnx {} {@var{json} =} jsonencode (@var{object}, "ConvertInfAndNaN", @var{conv})
+@deftypefnx {} {@var{json} =} jsonencode (@var{object}, "PrettyWriter", @var{pretty})
+@deftypefnx {} {@var{json} =} jsonencode (@var{object}, @dots{})
+
+Encode Octave's data types into JSON text.
+
+The input @var{object} is the Octave's object we want to encode.
+The output @var{json} is the JSON text that contains the result
+of encoding @var{object}.
+
+If the value of the option @qcode{"ConvertInfAndNaN"} is true, @qcode{"NaN"},
+@qcode{"Inf"} and @qcode{"-Inf"} values will be converted to @qcode{"null"}
+value in the output. If it is false, they will remain with their
+original values. The default value for this option is true.
+
+If the value of the option @qcode{"PrettyWriter"} is true, the output text will
+have indentations and line feeds. If it is false, the output will be condensed
+and without any white-spaces. The default value for this option is false.
+
+-NOTES:
+@itemize @bullet
+@item
+Complex numbers are not supported.
+
+@item
+To preserve the escape characters (e.g. "\n"), use double-quote strings.
+
+@item
+It is not guaranteed to get the same dimensions for arrays if you encode
+and then decode it. For example, If you encoded a row vector then decoded it,
+you will get a column vector.
+
+@item
+It is not guaranteed to get the same data type if you encode and then decode
+an Octave value as Octave supports more data types than JSON. For example, If
+you encoded an @qcode{"int32"} then decoded it, you will get a @qcode{"double"}.
+@end itemize
+
+
+This table shows the conversions from Octave data types to JSON data types:
+
+@table @asis
+@item Scalar @qcode{"logical"}
+@qcode{"Boolean"}
+
+@item @qcode{"NaN"}, @qcode{"Inf"}, @qcode{"-Inf"}
+@qcode{"null"}
+
+@item Scalar numeric
+@qcode{"Number"}
+
+@item @qcode{"Numeric vector"}
+@qcode{"Numeric array"}
+
+@item @qcode{"Numeric array"}
+Nested @qcode{"numeric array"}
+
+@item @qcode{"Logical vector"}
+@qcode{"Boolean array"}
+
+@item @qcode{"Logical array"}
+Nested @qcode{"boolean array"}
+
+@item @qcode{"Char vector"}
+@qcode{"String"}
+
+@item @qcode{"Char array"}
+Nested @qcode{"string array"}
+
+@item Scalar @qcode{"cell"}
+@qcode{"array"} with a single element
+
+@item @qcode{"Cell vector"}
+@qcode{"Array"}
+
+@item @qcode{"Cell array"}
+single dimensional @qcode{"array"}
+
+@item Scalar @qcode{"struct"}
+@qcode{"JSON Object"}
+
+@item @qcode{"Struct vector"}
+@qcode{"JSON objects array"}
+
+@item @qcode{"Struct array"}
+Nested @qcode{"JSON objects array"}
+
+@item @qcode{"containers.Map"}
+@qcode{"JSON object"}
+@end table
+
+Examples:
+
+@example
+@group
+jsonencode ([1 NaN; 3 4])
+@result{}  [[1,null],[3,4]]
+@end group
+
+@group
+jsonencode ([1 NaN; 3 4], "ConvertInfAndNaN", false)
+@result{}  [[1,NaN],[3,4]]
+@end group
+
+@group
+jsonencode ([true; false], "ConvertInfAndNaN", false, "PrettyWriter", true)
+@result{} ans = [
+                    true,
+                    false
+                ]
+@end group
+
+@group
+jsonencode (['foo', 'bar'; 'foo', 'bar'])
+@result{} ["foobar","foobar"]
+@end group
+
+@group
+jsonencode (struct ('a', Inf, 'b', [], 'c', struct ()))
+@result{} {"a":null,"b":[],"c":{}}
+@end group
+
+@group
+jsonencode (struct ('structarray', struct ('a', {1; 3}, 'b', {2; 4})))
+@result{} {"structarray":[{"a":1,"b":2},{"a":3,"b":4}]}
+@end group
+
+@group
+jsonencode ({'foo'; 'bar'; {'foo'; 'bar'}})
+@result{} ["foo","bar",["foo","bar"]]
+@end group
+
+@group
+jsonencode (containers.Map({'foo'; 'bar'; 'baz'}, [1, 2, 3]))
+@result{} {"bar":2,"baz":3,"foo":1}
+@end group
+@end example
+
+@seealso{jsondecode}
+@end deftypefn */)
 {
   int nargin = args.length ();
   // jsonencode has two options 'ConvertInfAndNaN' and 'PrettyWriter'
