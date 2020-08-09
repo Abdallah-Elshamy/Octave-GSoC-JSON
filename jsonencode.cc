@@ -138,7 +138,7 @@ encode_string (T& writer, const octave_value& obj,
       else
         {
           // We place an opening and a closing bracket for each dimension
-          // that equals 1 to perserve the number of dimensions when decoding
+          // that equals 1 to preserve the number of dimensions when decoding
           // the array after encoding it.
           if (org_dims (level) == 1 && level != 1)
           {
@@ -148,8 +148,9 @@ encode_string (T& writer, const octave_value& obj,
           }
           else
             {
-              // The second dimension contains the number of the chars in the char
-              // vector. We want to treat them as a one object, so we replace it with 1
+              // The second dimension contains the number of the chars in
+              // the char vector. We want to treat them as a one object,
+              // so we replace it with 1
               dims(1) = 1;
 
               for (idx = 0; idx < ndims; ++idx)
@@ -313,7 +314,7 @@ encode_array (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN,
       else
         {
           // We place an opening and a closing bracket for each dimension
-          // that equals 1 to perserve the number of dimensions when decoding
+          // that equals 1 to preserve the number of dimensions when decoding
           // the array after encoding it.
           if (org_dims (level) == 1)
           {
