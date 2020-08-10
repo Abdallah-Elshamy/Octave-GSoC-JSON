@@ -62,7 +62,6 @@ encode_numeric (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN
            || obj.isna ().bool_value ())
     writer.Null ();
   else if (obj.is_double_type ())
-  // FIXME: Print in scientific notation
     writer.Double (value);
   else
     error ("jsonencode: Unsupported type.");
@@ -72,7 +71,7 @@ encode_numeric (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN
 //!
 //! @param writer RapidJSON's writer that is responsible for generating json.
 //! @param obj character vectors or character arrays.
-//! @param org_dims The original dimensions of the array being encoded.
+//! @param original_dims The original dimensions of the array being encoded.
 //! @param level The level of recursion for the function.
 //!
 //! @b Example:
@@ -84,7 +83,7 @@ encode_numeric (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN
 
 template <typename T> void
 encode_string (T& writer, const octave_value& obj,
-               const dim_vector& org_dims, int level = 0)
+               const dim_vector& original_dims, int level = 0)
 {
   charNDArray array = obj.char_array_value ();
   if (array.isempty ())
@@ -102,11 +101,11 @@ encode_string (T& writer, const octave_value& obj,
           writer.String (char_vector.c_str ());
         }
       else
-        for (octave_idx_type i = 0; i < array.numel () / org_dims(1); ++i)
+        for (octave_idx_type i = 0; i < array.numel () / original_dims(1); ++i)
           {
             std::string char_vector = "";
-            for (octave_idx_type k = 0; k < org_dims(1); ++k)
-              char_vector += array(i * org_dims(1) + k);
+            for (octave_idx_type k = 0; k < original_dims(1); ++k)
+              char_vector += array(i * original_dims(1) + k);
             writer.String (char_vector.c_str ());
           }
     }
@@ -129,7 +128,7 @@ encode_string (T& writer, const octave_value& obj,
           for (int i = level; i < ndims - 1; ++i)
             writer.StartArray ();
 
-        encode_string (writer, array.as_row (), org_dims, level);
+        encode_string (writer, array.as_row (), original_dims, level);
 
         if (level != 0)
           for (int i = level; i < ndims - 1; ++i)
@@ -140,10 +139,10 @@ encode_string (T& writer, const octave_value& obj,
           // We place an opening and a closing bracket for each dimension
           // that equals 1 to preserve the number of dimensions when decoding
           // the array after encoding it.
-          if (org_dims (level) == 1 && level != 1)
+          if (original_dims (level) == 1 && level != 1)
           {
             writer.StartArray ();
-            encode_string (writer, array, org_dims, level + 1);
+            encode_string (writer, array, original_dims, level + 1);
             writer.EndArray ();
           }
           else
@@ -176,7 +175,8 @@ encode_string (T& writer, const octave_value& obj,
               writer.StartArray ();
 
               for (octave_idx_type i = 0; i < sub_arrays.numel (); ++i)
-                encode_string (writer, sub_arrays(i), org_dims, level + 1);
+                encode_string (writer, sub_arrays(i), original_dims,
+                               level + 1);
 
               writer.EndArray ();
             }
@@ -254,7 +254,7 @@ encode_cell (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
 //! @param writer RapidJSON's writer that is responsible for generating json.
 //! @param obj numeric or logical Octave array.
 //! @param ConvertInfAndNaN @c bool that converts @c Inf and @c NaN to @c null.
-//! @param org_dims The original dimensions of the array being encoded.
+//! @param original_dims The original dimensions of the array being encoded.
 //! @param level The level of recursion for the function.
 //!
 //! @b Example:
@@ -266,7 +266,7 @@ encode_cell (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
 
 template <typename T> void
 encode_array (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN,
-              const dim_vector& org_dims, int level = 0)
+              const dim_vector& original_dims, int level = 0)
 {
   NDArray array = obj.array_value ();
   if (array.isempty ())
@@ -305,7 +305,8 @@ encode_array (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN,
             for (int i = level; i < ndims - 1; ++i)
               writer.StartArray ();
 
-          encode_array (writer, array.as_row (), ConvertInfAndNaN, org_dims);
+          encode_array (writer, array.as_row (), ConvertInfAndNaN,
+                        original_dims);
 
           if (level != 0)
             for (int i = level; i < ndims - 1; ++i)
@@ -316,11 +317,11 @@ encode_array (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN,
           // We place an opening and a closing bracket for each dimension
           // that equals 1 to preserve the number of dimensions when decoding
           // the array after encoding it.
-          if (org_dims (level) == 1)
+          if (original_dims (level) == 1)
           {
             writer.StartArray ();
             encode_array (writer, array, ConvertInfAndNaN,
-                          org_dims, level + 1);
+                          original_dims, level + 1);
             writer.EndArray ();
           }
           else
@@ -350,7 +351,7 @@ encode_array (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN,
 
               for (octave_idx_type i = 0; i < sub_arrays.numel (); ++i)
                 encode_array (writer, sub_arrays(i), ConvertInfAndNaN,
-                              org_dims, level + 1);
+                              original_dims, level + 1);
 
               writer.EndArray ();
             }
