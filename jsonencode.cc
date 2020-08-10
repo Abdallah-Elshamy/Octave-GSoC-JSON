@@ -398,6 +398,12 @@ encode (T& writer, const octave_value& obj, const bool& ConvertInfAndNaN)
                      ConvertInfAndNaN);
       set_warning_state ("Octave:classdef-to-struct", "on");
     }
+  else if (obj.isobject ())
+    {
+      set_warning_state ("Octave:classdef-to-struct", "off");
+      encode_struct (writer, obj.scalar_map_value (), ConvertInfAndNaN);
+      set_warning_state ("Octave:classdef-to-struct", "on");
+    }
   else
     error ("jsonencode: Unsupported type.");
 }
@@ -428,6 +434,10 @@ and without any white-spaces. The default value for this option is false.
 @itemize @bullet
 @item
 Complex numbers are not supported.
+
+@item
+@qcode{"classdef"} objects and @qcode{"containers.Map"} objects are converted
+into structs then encoded as structs.
 
 @item
 To preserve the escape characters (e.g. "\n"), use double-quote strings.
@@ -491,6 +501,9 @@ single dimensional @qcode{"array"}
 
 @item @qcode{"Struct array"}
 Nested @qcode{"JSON objects array"}
+
+@item @qcode{"classdef"} objects
+@qcode{"JSON object"}
 
 @item @qcode{"containers.Map"}
 @qcode{"JSON object"}
