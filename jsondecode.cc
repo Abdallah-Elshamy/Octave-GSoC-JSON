@@ -521,6 +521,8 @@ jsondecode ('{"1": "one", "2": "two"}', 'Prefix', 'm_')
 @seealso{jsonencode, matlab.lang.makeValidName}
 @end deftypefn */)
 {
+#if defined (HAVE_RAPIDJSON)
+
   int nargin = args.length ();
   // makeValidName options must be in pairs
   // The number of arguments must be odd
@@ -544,4 +546,13 @@ jsondecode ('{"1": "one", "2": "two"}', 'Prefix', 'm_')
           (unsigned)d.GetErrorOffset (),
           rapidjson::GetParseError_En (d.GetParseError ()));
   return decode (d, args.slice (1, nargin-1));
+
+#else
+
+  octave_unused_parameter (args);
+
+  err_disabled_feature ("jsondecode",
+                        "RapidJSON is required for JSON encoding\\decoding");
+
+#endif
 }
