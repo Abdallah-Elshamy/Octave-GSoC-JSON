@@ -560,6 +560,8 @@ jsonencode (containers.Map({'foo'; 'bar'; 'baz'}, [1, 2, 3]))
 @seealso{jsondecode}
 @end deftypefn */)
 {
+#if defined (HAVE_RAPIDJSON)
+
   int nargin = args.length ();
   // jsonencode has two options 'ConvertInfAndNaN' and 'PrettyWriter'
   if (! (nargin == 1 || nargin == 3 || nargin == 5))
@@ -604,4 +606,13 @@ jsonencode (containers.Map({'foo'; 'bar'; 'baz'}, [1, 2, 3]))
     }
 
   return octave_value (json.GetString ());
+
+#else
+
+  octave_unused_parameter (args);
+
+  err_disabled_feature ("jsonencode",
+                        "RapidJSON is required for JSON encoding\\decoding");
+
+#endif
 }
